@@ -5,3 +5,9 @@ scipy
 Pillow
 fpdf2
 tk
+numpy
+opencv-python
+matplotlib
+Pillow
+requests
+reportlab

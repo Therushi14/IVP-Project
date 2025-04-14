@@ -218,16 +218,18 @@ class PlantDiseaseDetector:
         gray = cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
         
         # Define Prewitt kernels
-        kernel_x = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])
-        kernel_y = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
+        kernel_x = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]], dtype=np.float32)
+        kernel_y = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]], dtype=np.float32)
         
         # Apply Prewitt operator
-        prewitt_x = cv2.filter2D(gray, -1, kernel_x)
-        prewitt_y = cv2.filter2D(gray, -1, kernel_y)
+        prewitt_x = cv2.filter2D(gray, cv2.CV_32F, kernel_x)
+        prewitt_y = cv2.filter2D(gray, cv2.CV_32F, kernel_y)
         
         # Calculate the gradient magnitude
         prewitt_mag = np.sqrt(prewitt_x**2 + prewitt_y**2)
-        prewitt_mag = np.uint8(np.clip(prewitt_mag, 0, 255))
+        
+        # Normalize to 0-255 range and convert to uint8
+        prewitt_mag = cv2.normalize(prewitt_mag, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
         
         self.processed_image = cv2.cvtColor(prewitt_mag, cv2.COLOR_GRAY2RGB)
         print("Prewitt edge detection applied")
@@ -238,16 +240,21 @@ class PlantDiseaseDetector:
         gray = cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
         
         # Define Roberts kernels
-        kernel_x = np.array([[1, 0], [0, -1]])
-        kernel_y = np.array([[0, 1], [-1, 0]])
+        kernel_x = np.array([[1, 0], [0, -1]], dtype=np.float32)
+        kernel_y = np.array([[0, 1], [-1, 0]], dtype=np.float32)
+        
+        # Pad the image to handle the 2x2 kernel
+        padded = cv2.copyMakeBorder(gray, 1, 1, 1, 1, cv2.BORDER_REPLICATE)
         
         # Apply Roberts operator
-        roberts_x = cv2.filter2D(gray, -1, kernel_x)
-        roberts_y = cv2.filter2D(gray, -1, kernel_y)
+        roberts_x = cv2.filter2D(padded, cv2.CV_32F, kernel_x)[1:-1, 1:-1]  # Remove padding
+        roberts_y = cv2.filter2D(padded, cv2.CV_32F, kernel_y)[1:-1, 1:-1]  # Remove padding
         
         # Calculate the gradient magnitude
         roberts_mag = np.sqrt(roberts_x**2 + roberts_y**2)
-        roberts_mag = np.uint8(np.clip(roberts_mag, 0, 255))
+        
+        # Normalize to 0-255 range and convert to uint8
+        roberts_mag = cv2.normalize(roberts_mag, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
         
         self.processed_image = cv2.cvtColor(roberts_mag, cv2.COLOR_GRAY2RGB)
         print("Roberts edge detection applied")

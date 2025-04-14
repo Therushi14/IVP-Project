@@ -282,12 +282,16 @@ class DiseaseDetectionUI:
         
         # Apply edge detection
         edge_method = self.edge_detection_var.get()
-        if edge_method == "sobel":
-            self.detector.detect_edges_sobel()
-        elif edge_method == "prewitt":
-            self.detector.detect_edges_prewitt()
-        elif edge_method == "roberts":
-            self.detector.detect_edges_roberts()
+        try:
+            if edge_method == "sobel":
+                self.detector.detect_edges_sobel()
+            elif edge_method == "prewitt":
+                self.detector.detect_edges_prewitt()
+            elif edge_method == "roberts":
+                self.detector.detect_edges_roberts()
+        except Exception as e:
+            self.status_var.set(f"Edge detection error: {str(e)}")
+            return
         
         # Update display
         self.update_image_display(self.detector.processed_image, "Processed Image")
